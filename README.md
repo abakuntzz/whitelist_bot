@@ -24,7 +24,15 @@
 ## База данных
 ![img.png](img.png)
 ## Примерная иерархия пакетов
-![img2.png](img2.png)
+```mermaid
+  graph TD;
+      Main-->Bot;
+      Main-->Database;
+      Main-->Secrets;
+      Bot-->Commands;
+      Commands-->Database;
+      Database-->Secrets;
+```
 ## Схема взаимодействия
 ```mermaid
     sequenceDiagram
