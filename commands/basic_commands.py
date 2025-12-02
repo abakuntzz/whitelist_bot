@@ -15,5 +15,5 @@ async def command_start_handler(message: Message) -> None:
     await message.answer(f"Привет, {html.bold(message.from_user.full_name)}!")
 
 @basic_router.message(Command("help"))
-async def command_start_handler(message: Message) -> None:
+async def command_help_handler(message: Message) -> None:
     await message.answer(f"Инструкция: ...")

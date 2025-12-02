@@ -1,12 +1,11 @@
 from aiogram import Dispatcher, Router, F
-from .admin_check import IsAdmin
 
-basic_router = Router()
-admin_router = Router()
 private_router = Router()
+public_router = Router()
+basic_router = Router()
 dp = Dispatcher()
-admin_router.message.filter(IsAdmin())
+public_router.message.filter(F.chat.type == "group" or F.chat.type == "supergroup")
 private_router.message.filter(F.chat.type == "private")
-dp.include_router(basic_router)
-dp.include_router(admin_router)
+dp.include_router(public_router)
 dp.include_router(private_router)
+dp.include_router(basic_router)
