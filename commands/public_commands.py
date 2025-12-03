@@ -8,7 +8,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.types import Message
-from .dispatcher import public_router
+from .dispatcher import dp, public_router
 
 from functools import wraps
 from aiogram.types import Message
@@ -35,7 +35,7 @@ async def command_list_handler(message: Message) -> None:
     await message.answer(output)
 
 
-# вместо userId в БД надо сделать username!!! (заранее перевести в маленькие буквы)
+# вместо userId в БД надо сделать username? (заранее перевести в маленькие буквы)
 @public_router.message(Command("add_user"))
 @admin_required
 async def command_add_user_handler(message: Message, command: CommandObject) -> None:
@@ -101,7 +101,57 @@ async def command_remove_all_members_handler(message: Message, command: CommandO
         await message.answer("Белый список успешно очищен.")
     except Exception as e:
         await message.answer(f"Не удалось очистить белый список: {e}")
+# public_commands.py - обновите команду list_all_members
+
+@public_router.message(Command("list_all"))
+@admin_required
+async def command_list_all_handler(message: Message, command: CommandObject) -> None:
+    try:
+        # Получаем Telethon helper из контекста бота
+        telethon_helper = dp['telethon_helper']
+        if not telethon_helper:
+            # Или пробуем создать новый экземпляр
+            from .telethon_helper import TelethonHelper
+            telethon_helper = TelethonHelper()
+        
+        await message.answer("🔄 Получаю список участников через Telethon...")
+        
+        # Получаем участников
+        members = await telethon_helper.get_chat_members(message.chat.id)
+                
+        if not members:
+            await message.answer("Не найдено пользователей в чате")
+            return
+                
+        response = f"👥 Участники чата ({len(members)}):\n\n"
+        for i, member in enumerate(members[:50], 1):
+            username = f"@{member['username']}" if member['username'] else "без username"
+            if member['is_admin'] == 2:
+                status = "👑 "
+            elif member['is_admin'] == 1:
+                status = "🕵️ "
+            else:
+                status = ""
+            last_name = f" {member['last_name']}" if member['last_name'] else ""
+            response += f"{i}. {status}{member['first_name']}{last_name} ({username})\n"
+        
+        if len(members) > 50:
+            response += f"\n... и ещё {len(members) - 50} участников"
+            
+        await message.answer(response)
+    except Exception as e:
+        await message.answer(f"❌ Ошибка: {type(e).__name__}: {str(e)}")
 
 
-# add_all_members не получится из соображений приватности :(
-
+@public_router.message(Command("telethon_test"))
+@admin_required
+async def telethon_test_handler(message: Message):
+    """Тест Telethon соединения"""
+    try:
+        from .telethon_helper import TelethonHelper
+        telethon_helper = TelethonHelper()
+        
+        test_result = await telethon_helper.test_connection(message.chat.id)
+        await message.answer(test_result)
+    except Exception as e:
+        await message.answer(f"❌ Ошибка: {e}")
