@@ -32,7 +32,7 @@ class TelethonHelper:
         )
         await self._client.start(bot_token=bot_token)
         self._initialized = True
-        print("✅ Telethon клиент запущен")
+        print("[!] Telethon клиент запущен")
         me = await self._client.get_me()
     
     async def shutdown(self):
@@ -41,15 +41,14 @@ class TelethonHelper:
             await self._client.disconnect()
             self._client = None
             self._initialized = False
-            print("✅ Telethon клиент остановлен")
+            print("[!] Telethon клиент остановлен")
 
     async def get_chat_members(self, chat_id: int) -> List[Dict]:
         """Получить всех участников чата"""
         if not self._initialized:
             raise RuntimeError("Telethon клиент не инициализирован")
         members = []
-        try:
-            print(f"🔄 Получаю участников чата {chat_id}...")
+        try:   
             async for member in self._client.iter_participants(chat_id):
                 if member.bot:
                     # continue
@@ -67,70 +66,26 @@ class TelethonHelper:
                     'last_name': member.last_name or '',
                     'is_admin': is_admin
                 })
-            print(f"✅ Получено {len(members)} участников")
             return members
-            
         except Exception as e:
-            print(f"❌ Ошибка получения участников: {e}")
+            print(f"Ошибка получения участников: {e}")
             return []
     
-    async def get_chat_members_count(self, chat_id: int) -> int:
-        """Получить количество участников чата"""
-        try:
-            chat = await self._client.get_entity(chat_id)
-            if hasattr(chat, 'participants_count'):
-                return chat.participants_count
-            return 0
-        except:
-            return 0
-    
-    async def kick_user(self, chat_id: int, username: str) -> tuple[bool, str]:
+    async def kick_user(self, chat_id: int, user_id: int) -> bool:
         """Кикнуть пользователя по username"""
         try:
-            # Убираем @ если есть
-            if username.startswith("@"):
-                username = username[1:]
-            
-            # Получаем пользователя
-            user = await self._client.get_entity(username)
-            
-            # Кикаем пользователя
+            user = await self._client.get_entity(user_id)
             await self._client.kick_participant(chat_id, user)
-            
-            return True, f"✅ Пользователь @{username} кикнут"
-            
+            return True
         except Exception as e:
-            return False, f"❌ Ошибка: {type(e).__name__}: {str(e)}"
-    
-    async def add_users_to_whitelist_from_chat(self, chat_id: int) -> tuple[int, int]:
-        """Добавить всех пользователей чата в белый список"""
-        added = 0
-        total = 0
-        
-        try:
-            async for member in self._client.iter_participants(chat_id):
-                if member.bot:
-                    continue
-                
-                total += 1
-                added += 1  # Для примера
-                
-                # Здесь ваша логика добавления в БД
-                # if await add_to_database(member.id, member.username):
-                #     added += 1
-            
-            return added, total
-            
-        except Exception as e:
-            print(f"Ошибка: {e}")
-            return added, total
+            return False              
+   
     
     async def get_user_by_username(self, username: str) -> Optional[Dict]:
         """Получить информацию о пользователе по username"""
         try:
             if username.startswith("@"):
                 username = username[1:]
-            
             user = await self._client.get_entity(username)
             return {
                 'id': user.id,
@@ -142,25 +97,30 @@ class TelethonHelper:
         except Exception as e:
             print(f"Ошибка получения пользователя {username}: {e}")
             return None
-    
-    async def test_connection(self, chat_id: int = None) -> str:
-        """Тест соединения и проверка чата"""
+
+    async def chat_check(self, chat_id: int) -> bool:
+        users = self.get_chat_members(chat_id)
         try:
-            me = await self._client.get_me()
-            result = f"✅ Telethon работает!\n"
-            result += f"Бот: @{me.username} (ID: {me.id})\n"
-            
-            if chat_id:
-                try:
-                    chat = await self._client.get_entity(chat_id)
-                    result += f"\n📊 Чат {chat_id}:\n"
-                    result += f"• Название: {chat.title if hasattr(chat, 'title') else 'Нет'}\n"
-                    if hasattr(chat, 'participants_count'):
-                        result += f"• Участников: {chat.participants_count}\n"
-                    result += f"• Тип: {type(chat).__name__}\n"
-                except Exception as e:
-                    result += f"\n⚠️ Чат {chat_id} не доступен: {e}\n"
-            return result
-            
+            for user in users:
+                okay = True # потом убрать
+                # okay = await find_id_in_whitelist(chat_id, user['id'])
+                if not okay:
+                    try:
+                        await self.kick_user(chat_id, user['id'])
+                    except Exception:
+                        pass
         except Exception as e:
-            return f"❌ Ошибка Telethon: {type(e).__name__}: {str(e)}"
+            return False
+
+    async def master_check(self) -> None:
+        chats = [] # потом убрать
+        # chats = await find_unique_chat_ids()
+        for chat_id in chats:
+            try:
+                me = await self._client.get_me()
+                my_status = await self._client.get_permissions(chat_id, me)
+                if my_status:
+                    await self.chat_check(chat_id)
+            except Exception:
+                pass
+        print("[!] Проверка всех списков окончена")

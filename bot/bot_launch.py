@@ -27,6 +27,7 @@ async def activate() -> None:
         bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         dp['telethon_helper'] = telethon_helper
         await initialise_commands(bot)
+        await dp['telethon_helper'].master_check()
         await dp.start_polling(bot)
     finally:
         try:
