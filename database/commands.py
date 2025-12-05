@@ -70,7 +70,6 @@ async def update_pause_status(chat_id: int, paused: bool) -> bool:
             select(Chat).where(Chat.id == chat_id)
         )
         chat = chat_result.scalar_one_or_none()
-        
         if not chat:
             chat = Chat(id=chat_id, paused=paused)
             session.add(chat)
@@ -90,7 +89,7 @@ async def get_whitelist_by_chat(chat_id: int) -> list[str]:
 async def is_user_in_whitelist(username: str, chat_id: int) -> bool:
     async with AsyncSessionLocal() as session:
         username_clean = username.lower().replace('@', '')
-        
+    
         result = await session.execute(
             select(Whitelist.id).where(
                 (Whitelist.chat_id == chat_id) & 
