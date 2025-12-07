@@ -1,11 +1,24 @@
 from aiogram import Bot
-from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, BotCommandScopeAllChatAdministrators, \
-    BotCommandScopeAllPrivateChats, BotCommandScopeDefault
+from aiogram.types import BotCommand, BotCommandScopeAllGroupChats, \
+    BotCommandScopeDefault
 
-async def initialise_commands(bot: Bot):
+
+async def initialise_commands(bot: Bot) -> None:
     commands_gc = [
-        BotCommand(command="list", description="Показать белый список"),
-        BotCommand(command="add_user", description="@user - Добавить user в белый список"),
+        BotCommand(command="list",
+                   description="Показать белый список"),
+        BotCommand(command="add_user",
+                   description="@user - Добавить user в белый список"),
+        BotCommand(command="remove_user",
+                   description="@user - Удалить user из списка"),
+        BotCommand(command="pause",
+                   description="Поставить контроль списка на паузу"),
+        BotCommand(command="unpause",
+                   description="Убрать контроль списка с паузы"),
+        BotCommand(command="add_all_members",
+                   description="Добавить всех членов чата в список"),
+        BotCommand(command="remove_all_members",
+                   description="Очистить белый список")
     ]
     commands_all = [
         BotCommand(command="start", description="Краткий обзор"),
@@ -19,3 +32,6 @@ async def initialise_commands(bot: Bot):
         commands=commands_all,
         scope=BotCommandScopeDefault()
     )
+    # default_commands = await bot.get_my_commands(
+    #     scope=BotCommandScopeAllGroupChats())
+    # print(f"[!] Установлено команд: {len(default_commands)}")

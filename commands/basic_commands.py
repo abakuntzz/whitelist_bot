@@ -1,6 +1,3 @@
-import asyncio
-import logging
-import sys
 from os import getenv
 from pathlib import Path
 from aiogram import Bot, Dispatcher, html
@@ -12,6 +9,7 @@ from .dispatcher import basic_router
 
 @basic_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
+    # check_if_chat_in_db - если его добавили в чат пока он спал, активируем через start
     await message.answer(f"Привет, {html.bold(message.from_user.full_name)}!")
 
 @basic_router.message(Command("help"))

@@ -98,6 +98,23 @@ class TelethonHelper:
             print(f"Ошибка получения пользователя {username}: {e}")
             return None
 
+
+    async def get_user_by_id(self, user_id: int) -> Optional[Dict]:
+        """Получить информацию о пользователе по username"""
+        try:
+            user = await self._client.get_entity(user_id)
+            return {
+                'id': user.id,
+                'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name or '',
+                'is_bot': user.bot if hasattr(user, 'bot') else False
+            }
+        except Exception as e:
+            print(f"Ошибка получения пользователя {user_id}: {e}")
+            return None
+
+
     async def chat_check(self, chat_id: int) -> bool:
         users = self.get_chat_members(chat_id)
         try:

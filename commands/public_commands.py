@@ -7,10 +7,10 @@ from aiogram import Bot, Dispatcher, html, F
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from aiogram.filters import CommandStart, Command, CommandObject, ChatMemberUpdatedFilter,\
-    IS_NOT_MEMBER, IS_MEMBER, IS_ADMIN
+    IS_NOT_MEMBER, IS_MEMBER
 from aiogram.types import Message, ChatMemberUpdated
 from .dispatcher import dp, public_router
-
+from database.commands import update_pause_status, get_chat_status, add_user_to_whitelist, remove_user_from_whitelist, get_whitelist_by_chat
 from functools import wraps
 from aiogram.types import Message
 from aiogram.methods import GetChatAdministrators, GetChatMember
@@ -31,8 +31,25 @@ def admin_required(func):
 
 @public_router.message(Command("list"))
 async def command_list_handler(message: Message) -> None:
-    output = "Белый список: "
-    # users = get_chat_whitelist(message.chat.id) *должен возвращать список userId
+    output = "Белый список:\n"
+    users = await get_whitelist_by_chat(message.chat.id)
+    i = 0
+    for id in users:
+        try:
+            i += 1
+            name = await dp['telethon_helper'].get_user_by_id(int(id))
+            output += f"{i}. {name['first_name']} {name['last_name']} ({name['username']})\n"
+        except Exception as e:
+            print(e)
+            pass
+    try:
+        paused = await get_chat_status(message.chat.id)
+        print(paused)
+        output += "Статус: "
+        output += "выключен.\n" if paused else "включен.\n"
+    except Exception as e:
+        print(f"Ошибка при получении статуса чата: {e}.")
+        output += f"неизвестен.\n"
     await message.answer(output)
 
 
@@ -46,8 +63,13 @@ async def command_add_user_handler(message: Message, command: CommandObject) -> 
     username = commands.split()[0]
     try:
         user = await dp['telethon_helper'].get_user_by_username(username)
-        # await add_user_to_whitelist(message.chat.id, user['id'])
-        await message.answer(f"Пользователь {username} добавлен в белый список.")
+        done = await add_user_to_whitelist(message.chat.id, user['id'])
+        print(user['id'])
+        if not done[0]:
+            print(done[1])
+            await message.answer(f"Не удалось добавить пользователя: {done[1]}.")
+        else:
+            await message.answer(f"Пользователь {username} добавлен в белый список.")
     except Exception as e:
         await message.answer(f"Не удалось добавить пользователя: {e}")
 
@@ -65,15 +87,17 @@ async def command_remove_user_handler(message: Message, command: CommandObject) 
         return
     try:
         user = await dp['telethon_helper'].get_user_by_username(username)
-        # done = await remove_user_from_whitelist(message.chat.id, user['id']) *true - такой был, false - такого не было
-        # if not done: await message.answer(f"Пользователь не найден в белом списке")
-        # else:
-        # if not get_pause_status(message.chat.id): 
-        try:
-            await dp['telethon_helper'].kick_user(message.chat.id, user['id'])
-        except Exception:
-            pass
-        await message.answer(f"Пользователь {username} удалён из белого списка.")
+        done = await remove_user_from_whitelist(message.chat.id, user['id'])
+        if not done:
+            await message.answer(f"Пользователь не найден в белом списке")
+        else:
+            pause = await get_chat_status(message.chat.id)
+            if not pause: 
+                try:
+                    await dp['telethon_helper'].kick_user(message.chat.id, user['id'])
+                except Exception:
+                    pass
+            await message.answer(f"Пользователь {username} удалён из белого списка.")
     except Exception as e:
         await message.answer(f"Не удалось удалить пользователя: {e}")
 
@@ -82,7 +106,7 @@ async def command_remove_user_handler(message: Message, command: CommandObject) 
 @admin_required
 async def command_pause_handler(message: Message, command: CommandObject) -> None:
     try:
-        # await pause(message.chat.id)
+        await update_pause_status(message.chat.id, True)
         await message.answer("Контроль белого списка на паузе. Чтобы вновь его активировать, напишите /unpause.")
     except Exception as e:
         await message.answer(f"Не удалось поставить на паузу: {e}")
@@ -92,8 +116,8 @@ async def command_pause_handler(message: Message, command: CommandObject) -> Non
 @admin_required
 async def command_unpause_handler(message: Message, command: CommandObject) -> None:
     try:
-        # await unpause(message.chat.id)
-        await dp['telethon_helper'].chat_check(message.chat.id)
+        await update_pause_status(message.chat.id, False)
+        # await dp['telethon_helper'].chat_check(message.chat.id)
         await message.answer("Контроль белого списка активирован.")
     except Exception as e:
         await message.answer(f"Не удалось убрать с паузы: {e}")
@@ -169,9 +193,9 @@ async def handle_new_chat_member(event: ChatMemberUpdated):
     user_id = event.new_chat_member.user.id
     print(f"[!] Новый участник чата: {user_id}")
     okay = True # потом убрать
-    # okay = await find_id_in_whitelist(event.chat.id, user_id')
+    # okay = await find_id_in_whitelist(event.chat.id, user_id)
     # if not get_pause_status(message.chat.id):
-    if not okay: 
+    if not okay:
         try:
             await dp['telethon_helper'].kick_user(event.chat.id, user_id)
         except Exception:

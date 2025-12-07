@@ -12,6 +12,7 @@ from commands.telethon_helper import TelethonHelper
 from commands.dispatcher import dp
 from commands import public_commands, basic_commands, private_commands
 from .set_commands import initialise_commands
+from database.connection import create_tables
 
 async def activate() -> None:
     try:
@@ -27,6 +28,7 @@ async def activate() -> None:
         bot = Bot(token=bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         dp['telethon_helper'] = telethon_helper
         await initialise_commands(bot)
+        await create_tables()
         await dp['telethon_helper'].master_check()
         await dp.start_polling(bot)
     finally:
