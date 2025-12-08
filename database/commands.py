@@ -82,14 +82,12 @@ async def get_whitelist_by_chat(chat_id: int) -> list[str]:
         )
         return [f"{row[0]}" for row in whitelist_result.fetchall()]
       
-async def is_user_in_whitelist(chat_id: int, username: str) -> bool:
-    async with AsyncSessionLocal() as session:
-        username_clean = username.lower().replace('@', '')
-    
+async def is_user_in_whitelist(chat_id: int, user_id: str) -> bool:
+    async with AsyncSessionLocal() as session:  
         result = await session.execute(
             select(Whitelist.id).where(
                 (Whitelist.chat_id == chat_id) & 
-                (Whitelist.username == username_clean)
+                (Whitelist.username == user_id)
             )
         )
         return result.scalar_one_or_none() is not None

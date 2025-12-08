@@ -9,9 +9,17 @@ from .dispatcher import basic_router
 
 @basic_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    # check_if_chat_in_db - если его добавили в чат пока он спал, активируем через start
-    await message.answer(f"Привет, {html.bold(message.from_user.full_name)}!")
+    # if message.chat.id < 0: - проверка на групповой чат
+    # await ensure_chat_in_db - если его добавили в чат пока он спал, добавляем в бд
+    await message.answer("Привет! Я - Бот-Кондуктор, здесь, чтобы контролировать белый список!\n"
+                         "Чтобы узнать, как мной пользоваться, напиши /help.")
 
 @basic_router.message(Command("help"))
 async def command_help_handler(message: Message) -> None:
-    await message.answer(f"Инструкция: ...")
+    # if message.chat.id < 0:
+    # await ensure_chat_in_db
+    await message.answer(f"{html.bold("Инструкция:")}\n"
+                         f"{html.bold("Общие функции:")}\n"r"\start - приветствие""\n"r"\help - инструкция""\n"r"\list - белый список""\n"
+                         f"{html.bold("Функции для админов:")}\n"
+                         f"{html.bold("Важно!")} Чтобы я мог выполнять свою работу, "
+                         "необходимо выдать мне админское право на кик людей. Админов и себя я не кикаю.")

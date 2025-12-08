@@ -2,6 +2,8 @@ from telethon import TelegramClient
 from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
 from typing import List, Dict, Optional
 import asyncio
+import logging
+from database.commands import is_user_in_whitelist
 
 class TelethonHelper:
     _instance: Optional['TelethonHelper'] = None
@@ -32,8 +34,7 @@ class TelethonHelper:
         )
         await self._client.start(bot_token=bot_token)
         self._initialized = True
-        print("[!] Telethon клиент запущен")
-        me = await self._client.get_me()
+        self._me = await self._client.get_me()
     
     async def shutdown(self):
         """Остановка Telethon клиента"""
@@ -41,7 +42,6 @@ class TelethonHelper:
             await self._client.disconnect()
             self._client = None
             self._initialized = False
-            print("[!] Telethon клиент остановлен")
 
     async def get_chat_members(self, chat_id: int) -> List[Dict]:
         """Получить всех участников чата"""
@@ -68,19 +68,21 @@ class TelethonHelper:
                 })
             return members
         except Exception as e:
-            print(f"Ошибка получения участников: {e}")
+            logging.info(f"Ошибка получения участников чата {chat_id} - {e}")
             return []
-    
+
     async def kick_user(self, chat_id: int, user_id: int) -> bool:
-        """Кикнуть пользователя по username"""
+        """Кикнуть пользователя по user_id"""
         try:
-            user = await self._client.get_entity(user_id)
-            await self._client.kick_participant(chat_id, user)
-            return True
+            if user_id != self._me.id:
+                user = await self._client.get_entity(user_id)
+                await self._client.kick_participant(chat_id, user)
+                return True
+            return False
         except Exception as e:
-            return False              
-   
-    
+            logging.info(f"Ошибка кика пользователя {user_id} из чата {chat_id} - {e}")
+            return False
+
     async def get_user_by_username(self, username: str) -> Optional[Dict]:
         """Получить информацию о пользователе по username"""
         try:
@@ -95,12 +97,12 @@ class TelethonHelper:
                 'is_bot': user.bot if hasattr(user, 'bot') else False
             }
         except Exception as e:
-            print(f"Ошибка получения пользователя {username}: {e}")
+            logging.info(f"Ошибка получения пользователя {username} - {e}")
             return None
 
 
     async def get_user_by_id(self, user_id: int) -> Optional[Dict]:
-        """Получить информацию о пользователе по username"""
+        """Получить информацию о пользователе по user_id"""
         try:
             user = await self._client.get_entity(user_id)
             return {
@@ -111,22 +113,22 @@ class TelethonHelper:
                 'is_bot': user.bot if hasattr(user, 'bot') else False
             }
         except Exception as e:
-            print(f"Ошибка получения пользователя {user_id}: {e}")
+            logging.info(f"Ошибка получения пользователя {user_id} - {e}")
             return None
 
 
     async def chat_check(self, chat_id: int) -> bool:
-        users = self.get_chat_members(chat_id)
+        users = await self.get_chat_members(chat_id)
         try:
             for user in users:
-                okay = True # потом убрать
-                # okay = await find_id_in_whitelist(chat_id, user['id'])
+                okay = await is_user_in_whitelist(chat_id, user['id'])
                 if not okay:
                     try:
                         await self.kick_user(chat_id, user['id'])
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        logging.info(f"Ошибка кика пользователя {user['id']} из чата {chat_id} - {e}")
         except Exception as e:
+            logging.info(f"Ошибка проверки чата {chat_id} - {e}")
             return False
 
     async def master_check(self) -> None:
@@ -140,4 +142,4 @@ class TelethonHelper:
                     await self.chat_check(chat_id)
             except Exception:
                 pass
-        print("[!] Проверка всех списков окончена")
+        logging.info("Проверка всех списков окончена")

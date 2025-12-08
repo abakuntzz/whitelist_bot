@@ -34,5 +34,6 @@ async def activate() -> None:
     finally:
         try:
             await dp['telethon_helper'].shutdown()
-        except Exception:
+        except Exception as e:
+            print(e)
             pass
