@@ -149,8 +149,7 @@ async def command_remove_all_members_handler(message: Message,
 async def bot_added_to_chat(event: ChatMemberUpdated):
     chat_id = event.chat.id
     logging.info(f"Меня добавили в чат: {chat_id}")
-    # await add_chat_to_database(chat_id) ВАЖНО: даже если чат уже есть,
-    # в нём ставим паузу!!
+    await update_pause_status(chat_id, True)
 
 
 @public_router.chat_member(

@@ -6,8 +6,6 @@ from .dispatcher import basic_router
 
 @basic_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    # if message.chat.id < 0: - проверка на групповой чат
-    # await ensure_chat_in_db - добавили в чат пока спал => добавляем в бд
     await message.answer("Привет! Я - Бот-Кондуктор, здесь, "
                          "чтобы контролировать белый список!\n"
                          "Чтобы узнать, как мной пользоваться, напиши /help.")
@@ -15,8 +13,6 @@ async def command_start_handler(message: Message) -> None:
 
 @basic_router.message(Command("help"))
 async def command_help_handler(message: Message) -> None:
-    # if message.chat.id < 0:
-    # await ensure_chat_in_db
     await message.answer(f"{html.bold("Инструкция:")}\n"
                          f"{html.bold("Общие функции:")}\n"
                          "/start - приветствие\n"

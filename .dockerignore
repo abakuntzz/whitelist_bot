@@ -12,7 +12,6 @@ venv/
 # Логи и временные файлы
 *.log
 *.sqlite
-*.db
 *.session
 log.txt
 

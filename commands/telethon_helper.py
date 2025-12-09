@@ -49,9 +49,6 @@ class TelethonHelper:
         members = []
         try:
             async for member in self._client.iter_participants(chat_id):
-                if member.bot:
-                    # continue
-                    pass
                 is_admin = 0
                 if hasattr(member.participant, '__class__'):
                     if isinstance(member.participant, ChannelParticipantAdmin):
@@ -137,12 +134,16 @@ class TelethonHelper:
         """Проверить все чаты на соответствие списку"""
         chats = []  # потом убрать
         # chats = await find_unique_chat_ids()
+        try:
+            me = await self._client.get_me()
+        except Exception as e:
+            logging.info(f"Не удалось получить себя - {e}")
+            return
         for chat_id in chats:
             try:
-                me = await self._client.get_me()
                 my_status = await self._client.get_permissions(chat_id, me)
                 if my_status:
                     await self.chat_check(chat_id)
-            except Exception:
-                pass
+            except Exception as e:
+                logging.info(f"Ошибка нахождения себя в чате {chat_id} - {e}")
         logging.info("Проверка всех списков окончена")
