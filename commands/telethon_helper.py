@@ -1,32 +1,33 @@
 from telethon import TelegramClient
-from telethon.tl.types import ChannelParticipantAdmin, ChannelParticipantCreator
+from telethon.tl.types import ChannelParticipantAdmin, \
+    ChannelParticipantCreator
 from typing import List, Dict, Optional
-import asyncio
 import logging
 from database.commands import is_user_in_whitelist
+
 
 class TelethonHelper:
     _instance: Optional['TelethonHelper'] = None
     _client: Optional[TelegramClient] = None
     _initialized: bool = False
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._client = None
             cls._instance._initialized = False
         return cls._instance
-    
+
     @property
     def client(self) -> TelegramClient:
         if self._client is None:
             raise RuntimeError("Telethon client not initialized")
         return self._client
-    
+
     async def initialize(self, api_id: int, api_hash: str, bot_token: str):
         """Инициализация Telethon клиента"""
         if self._initialized:
-            return 
+            return
         self._client = TelegramClient(
             'whitelist_bot_session',
             api_id=api_id,
@@ -35,7 +36,7 @@ class TelethonHelper:
         await self._client.start(bot_token=bot_token)
         self._initialized = True
         self._me = await self._client.get_me()
-    
+
     async def shutdown(self):
         """Остановка Telethon клиента"""
         if self._client:
@@ -45,10 +46,8 @@ class TelethonHelper:
 
     async def get_chat_members(self, chat_id: int) -> List[Dict]:
         """Получить всех участников чата"""
-        if not self._initialized:
-            raise RuntimeError("Telethon клиент не инициализирован")
         members = []
-        try:   
+        try:
             async for member in self._client.iter_participants(chat_id):
                 if member.bot:
                     # continue
@@ -57,7 +56,8 @@ class TelethonHelper:
                 if hasattr(member.participant, '__class__'):
                     if isinstance(member.participant, ChannelParticipantAdmin):
                         is_admin = 1
-                    elif isinstance(member.participant, ChannelParticipantCreator):
+                    elif isinstance(member.participant,
+                                    ChannelParticipantCreator):
                         is_admin = 2
                 members.append({
                     'id': member.id,
@@ -80,7 +80,8 @@ class TelethonHelper:
                 return True
             return False
         except Exception as e:
-            logging.info(f"Ошибка кика пользователя {user_id} из чата {chat_id} - {e}")
+            logging.info(f"Ошибка кика пользователя {user_id} из чата "
+                         f"{chat_id} - {e}")
             return False
 
     async def get_user_by_username(self, username: str) -> Optional[Dict]:
@@ -100,7 +101,6 @@ class TelethonHelper:
             logging.info(f"Ошибка получения пользователя {username} - {e}")
             return None
 
-
     async def get_user_by_id(self, user_id: int) -> Optional[Dict]:
         """Получить информацию о пользователе по user_id"""
         try:
@@ -116,8 +116,8 @@ class TelethonHelper:
             logging.info(f"Ошибка получения пользователя {user_id} - {e}")
             return None
 
-
     async def chat_check(self, chat_id: int) -> bool:
+        """Проверить соответствие чата chat_id списку"""
         users = await self.get_chat_members(chat_id)
         try:
             for user in users:
@@ -126,13 +126,16 @@ class TelethonHelper:
                     try:
                         await self.kick_user(chat_id, user['id'])
                     except Exception as e:
-                        logging.info(f"Ошибка кика пользователя {user['id']} из чата {chat_id} - {e}")
+                        logging.info(f"Ошибка кика пользователя {user['id']} "
+                                     f"из чата {chat_id} - {e}")
+            return True
         except Exception as e:
             logging.info(f"Ошибка проверки чата {chat_id} - {e}")
             return False
 
     async def master_check(self) -> None:
-        chats = [] # потом убрать
+        """Проверить все чаты на соответствие списку"""
+        chats = []  # потом убрать
         # chats = await find_unique_chat_ids()
         for chat_id in chats:
             try:
