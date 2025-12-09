@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 from aiogram import Bot
+import sys
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from commands.telethon_helper import TelethonHelper
@@ -14,9 +15,11 @@ import traceback
 
 async def activate() -> None:
     try:
-        log = open("log.txt", "a")
         f_str = '[%(asctime)s] %(name)s: [%(levelname)s] %(message)s'
-        logging.basicConfig(level=logging.INFO, format=f_str, stream=log)
+        logging.basicConfig(level=logging.INFO, format=f_str, handlers=[
+                logging.FileHandler('log.txt', mode='a', encoding='utf-8'),
+                logging.StreamHandler(sys.stdout)
+            ])
         directory = Path(__file__).resolve().parent.parent / "secrets"
         with open(directory / "bot_secret.txt") as f:
             bot_token = f.read().strip()
@@ -39,6 +42,5 @@ async def activate() -> None:
     finally:
         try:
             await dp['telethon_helper'].shutdown()
-            log.close()
         except Exception as e:
             logging.info(f"Не удалось завершить работу клиента - {e}")

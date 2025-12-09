@@ -1,0 +1,23 @@
+# Системные файлы
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+.venv
+
+# Логи и временные файлы
+*.log
+*.sqlite
+*.db
+*.session
+log.txt
+
+# IDE файлы
+.vscode/
+.idea/
+*.swp
+*.swo
