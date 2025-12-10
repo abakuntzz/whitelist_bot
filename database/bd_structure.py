@@ -17,5 +17,5 @@ class Whitelist(Base):
     __tablename__ = 'whitelist'
     id = Column(Integer, primary_key=True, autoincrement=True)
     chat_id = Column(BigInteger, nullable=False)
-    user_id = Column(String(100), nullable=False)
+    user_id = Column(BigInteger, nullable=False)
     # chat = relationship("Chat", back_populates="whitelist_entries")

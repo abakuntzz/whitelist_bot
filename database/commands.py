@@ -5,7 +5,7 @@ from .connection import AsyncSessionLocal
 
 
 async def add_user_to_whitelist(chat_id: int,
-                                user_id: str) -> tuple[bool, str]:
+                                user_id: int) -> tuple[bool, str]:
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
@@ -32,7 +32,7 @@ async def add_user_to_whitelist(chat_id: int,
         return False, "Ошибка системы"
 
 
-async def remove_user_from_whitelist(chat_id: int, user_id: str) -> bool:
+async def remove_user_from_whitelist(chat_id: int, user_id: int) -> bool:
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
@@ -98,7 +98,7 @@ async def get_whitelist_by_chat(chat_id: int) -> list[str]:
         return [f"{row[0]}" for row in whitelist_result.fetchall()]
 
 
-async def is_user_in_whitelist(chat_id: int, user_id: str) -> bool:
+async def is_user_in_whitelist(chat_id: int, user_id: int) -> bool:
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
