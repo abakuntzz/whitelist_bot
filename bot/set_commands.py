@@ -32,6 +32,3 @@ async def initialise_commands(bot: Bot) -> None:
         commands=commands_all,
         scope=BotCommandScopeDefault()
     )
-    # default_commands = await bot.get_my_commands(
-    #     scope=BotCommandScopeAllGroupChats())
-    # print(f"[!] Установлено команд: {len(default_commands)}")

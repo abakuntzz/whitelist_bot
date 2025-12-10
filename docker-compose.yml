@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    container_name: whitelist-bot
+    restart: unless-stopped
+    volumes:
+      - ./secrets:/app/secrets
+      - ./log.txt:/app/log.txt

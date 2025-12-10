@@ -1,0 +1,4 @@
+aiogram>=3.22.0
+SQLAlchemy>=2.0.34
+telethon>=1.42.0
+aiosqlite>=0.19.0
