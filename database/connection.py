@@ -1,4 +1,5 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, \
+    async_sessionmaker
 from pathlib import Path
 
 secret_path = Path(__file__).parent.parent / "secrets" / "db_secret.txt"
@@ -29,12 +30,13 @@ AsyncSessionLocal = async_sessionmaker(
     expire_on_commit=False,
 )
 
+
 async def get_db():
     async with AsyncSessionLocal() as session:
         yield session
 
+
 async def create_tables():
-    from .models import Base
+    from .bd_structure import Base
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    
