@@ -62,9 +62,8 @@ async def command_add_user_handler(message: Message,
     try:
         user = await dp['telethon_helper'].get_user_by_username(username)
         done = await add_user_to_whitelist(chat_id, user['id'])
-        if not done[0]:
-            await message.answer(f"Не удалось добавить пользователя: "
-                                 f"{done[1]}.")
+        if not done:
+            await message.answer(f"Не удалось добавить пользователя: Пользователь уже в белом списке.")
         else:
             await message.answer(f"Пользователь {username} "
                                  "добавлен в белый список.")
