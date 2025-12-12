@@ -48,22 +48,24 @@ class TelethonHelper:
         """Получить всех участников чата"""
         members = []
         try:
-            async for member in self._client.iter_participants(chat_id):
-                is_admin = 0
-                if hasattr(member.participant, '__class__'):
-                    if isinstance(member.participant, ChannelParticipantAdmin):
-                        is_admin = 1
-                    elif isinstance(member.participant,
-                                    ChannelParticipantCreator):
-                        is_admin = 2
-                members.append({
-                    'id': member.id,
-                    'username': member.username,
-                    'first_name': member.first_name,
-                    'last_name': member.last_name or '',
-                    'is_admin': is_admin
-                })
-            return members
+            if self._client:
+                async for member in self._client.iter_participants(chat_id):
+                    is_admin = 0
+                    if hasattr(member.participant, '__class__'):
+                        if isinstance(member.participant, ChannelParticipantAdmin):
+                            is_admin = 1
+                        elif isinstance(member.participant,
+                                        ChannelParticipantCreator):
+                            is_admin = 2
+                    members.append({
+                        'id': member.id,
+                        'username': member.username,
+                        'first_name': member.first_name,
+                        'last_name': member.last_name or '',
+                        'is_admin': is_admin
+                    })
+                return members
+            return []
         except Exception as e:
             logging.info(f"Ошибка получения участников чата {chat_id} - {e}")
             return []
@@ -72,9 +74,10 @@ class TelethonHelper:
         """Кикнуть пользователя по user_id"""
         try:
             if user_id != self._me.id:
-                user = await self._client.get_entity(user_id)
-                await self._client.kick_participant(chat_id, user)
-                return True
+                if self._client:
+                    user = await self._client.get_entity(user_id)
+                    await self._client.kick_participant(chat_id, user)
+                    return True
             return False
         except Exception as e:
             logging.info(f"Ошибка кика пользователя {user_id} из чата "
@@ -86,14 +89,16 @@ class TelethonHelper:
         try:
             if username.startswith("@"):
                 username = username[1:]
-            user = await self._client.get_entity(username)
-            return {
-                'id': user.id,
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name or '',
-                'is_bot': user.bot if hasattr(user, 'bot') else False
-            }
+            if self._client:
+                user = await self._client.get_entity(username)
+                return {
+                    'id': user.id,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name or '',
+                    'is_bot': user.bot if hasattr(user, 'bot') else False
+                }
+            return None
         except Exception as e:
             logging.info(f"Ошибка получения пользователя {username} - {e}")
             return None
@@ -101,14 +106,16 @@ class TelethonHelper:
     async def get_user_by_id(self, user_id: int) -> Optional[Dict]:
         """Получить информацию о пользователе по user_id"""
         try:
-            user = await self._client.get_entity(user_id)
-            return {
-                'id': user.id,
-                'username': user.username,
-                'first_name': user.first_name,
-                'last_name': user.last_name or '',
-                'is_bot': user.bot if hasattr(user, 'bot') else False
-            }
+            if self._client:
+                user = await self._client.get_entity(user_id)
+                return {
+                    'id': user.id,
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name or '',
+                    'is_bot': user.bot if hasattr(user, 'bot') else False
+                }
+            return None
         except Exception as e:
             logging.info(f"Ошибка получения пользователя {user_id} - {e}")
             return None
@@ -129,21 +136,3 @@ class TelethonHelper:
         except Exception as e:
             logging.info(f"Ошибка проверки чата {chat_id} - {e}")
             return False
-
-    async def master_check(self) -> None:
-        """Проверить все чаты на соответствие списку"""
-        chats = []  # потом убрать
-        # chats = await find_unique_chat_ids()
-        try:
-            me = await self._client.get_me()
-        except Exception as e:
-            logging.info(f"Не удалось получить себя - {e}")
-            return
-        for chat_id in chats:
-            try:
-                my_status = await self._client.get_permissions(chat_id, me)
-                if my_status:
-                    await self.chat_check(chat_id)
-            except Exception as e:
-                logging.info(f"Ошибка нахождения себя в чате {chat_id} - {e}")
-        logging.info("Проверка всех списков окончена")
