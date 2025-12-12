@@ -5,7 +5,7 @@ from .connection import AsyncSessionLocal
 
 
 async def add_user_to_whitelist(chat_id: int,
-                                user_id: int) -> tuple[bool, str]:
+                                user_id: int) -> bool:
     try:
         async with AsyncSessionLocal() as session:
             result = await session.execute(
@@ -14,9 +14,9 @@ async def add_user_to_whitelist(chat_id: int,
                     (Whitelist.user_id == user_id)
                 )
             )
-            existing = result.scalar_one_or_none()
-            if existing:
-                return False, "Пользователь уже в белом списке"
+            
+            if result.scalar_one_or_none():
+                return False #уже в списке
             entry = Whitelist(chat_id=chat_id, user_id=user_id)
             session.add(entry)
             chat_result = await session.execute(
@@ -25,11 +25,11 @@ async def add_user_to_whitelist(chat_id: int,
             if not chat_result.scalar_one_or_none():
                 session.add(Chat(id=chat_id, paused=True))
             await session.commit()
-            return True, "Пользователь добавлен"
+            return True
     except Exception as e:
         logging.info(f"Не удалось добавить пользователя {user_id} в список "
                      f"{chat_id} - {e}")
-        return False, "Ошибка системы"
+        return False
 
 
 async def remove_user_from_whitelist(chat_id: int, user_id: int) -> bool:
