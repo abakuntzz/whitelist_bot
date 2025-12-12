@@ -16,7 +16,7 @@ async def add_user_to_whitelist(chat_id: int,
             )
             
             if result.scalar_one_or_none():
-                return False #уже в списке
+                return False  # уже в списке
             entry = Whitelist(chat_id=chat_id, user_id=user_id)
             session.add(entry)
             chat_result = await session.execute(
