@@ -28,13 +28,13 @@ async def activate() -> None:
         with open(directory / "api_hash.txt") as f:
             api_hash = f.read().strip()
         telethon_helper = TelethonHelper()
-        await telethon_helper.initialize(api_id, api_hash, bot_token)
+        await telethon_helper.initialize(int(api_id), api_hash, bot_token)
         bot = Bot(token=bot_token,
                   default=DefaultBotProperties(parse_mode=ParseMode.HTML))
         dp['telethon_helper'] = telethon_helper
         await initialise_commands(bot)
         await create_tables()
-        await dp['telethon_helper'].master_check()
+        # await dp['telethon_helper'].master_check()
         await dp.start_polling(bot)
     except Exception as e:
         print(traceback.format_exc())

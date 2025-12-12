@@ -2,7 +2,7 @@ import logging
 from aiogram import html
 from aiogram.filters import Command, CommandObject, ChatMemberUpdatedFilter, \
     IS_NOT_MEMBER, IS_MEMBER, IS_ADMIN
-from aiogram.types import Message, ChatMemberUpdated
+from aiogram.types import Message, ChatMemberUpdated, User
 from .dispatcher import dp, public_router
 from database.commands import update_pause_status, get_chat_status, \
     add_user_to_whitelist, remove_user_from_whitelist, get_whitelist_by_chat, \
@@ -14,8 +14,10 @@ from aiogram.methods import GetChatAdministrators
 def admin_required(func):
     @wraps(func)
     async def wrapper(message: Message, *args, **kwargs):
+        if message.from_user is None:
+            return
         admins = await message.bot(GetChatAdministrators
-                                   (chat_id=message.chat.id))
+                                   (chat_id=message.chat.id))  #type: ignore
         user_is_admin = any(admin.user.id == message.from_user.id
                             for admin in admins)
         if not user_is_admin:
@@ -60,9 +62,8 @@ async def command_add_user_handler(message: Message,
     try:
         user = await dp['telethon_helper'].get_user_by_username(username)
         done = await add_user_to_whitelist(chat_id, user['id'])
-        if not done[0]:
-            await message.answer(f"Не удалось добавить пользователя: "
-                                 f"{done[1]}.")
+        if not done:
+            await message.answer(f"Не удалось добавить пользователя: Пользователь уже в белом списке.")
         else:
             await message.answer(f"Пользователь {username} "
                                  "добавлен в белый список.")
@@ -86,12 +87,12 @@ async def command_remove_user_handler(message: Message,
     chat_id = message.chat.id
     user = await dp['telethon_helper'].get_user_by_username(username)
     done = await remove_user_from_whitelist(chat_id, user['id'])
+    pause = await get_chat_status(chat_id)
+    if not pause:
+        await dp['telethon_helper'].kick_user(message.chat.id, user['id'])
     if not done:
         await message.answer("Пользователь не найден в белом списке")
     else:
-        pause = await get_chat_status(chat_id)
-        if not pause:
-            await dp['telethon_helper'].kick_user(message.chat.id, user['id'])
         await message.answer(f"Пользователь {username} "
                              "удалён из белого списка.")
 
@@ -136,7 +137,7 @@ async def command_remove_all_members_handler(message: Message,
     chat_id = message.chat.id
     users = await get_whitelist_by_chat(chat_id)
     for user in users:
-        await remove_user_from_whitelist(chat_id, user)
+        await remove_user_from_whitelist(chat_id, int(user))
     pause = await get_chat_status(chat_id)
     if not pause:
         await dp['telethon_helper'].chat_check(chat_id)
