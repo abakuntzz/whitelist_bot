@@ -14,7 +14,6 @@ async def add_user_to_whitelist(chat_id: int,
                     (Whitelist.user_id == user_id)
                 )
             )
-            
             if result.scalar_one_or_none():
                 return False  # уже в списке
             entry = Whitelist(chat_id=chat_id, user_id=user_id)

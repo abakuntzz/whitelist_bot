@@ -2,7 +2,7 @@ import logging
 from aiogram import html
 from aiogram.filters import Command, CommandObject, ChatMemberUpdatedFilter, \
     IS_NOT_MEMBER, IS_MEMBER, IS_ADMIN
-from aiogram.types import Message, ChatMemberUpdated, User
+from aiogram.types import Message, ChatMemberUpdated
 from .dispatcher import dp, public_router
 from database.commands import update_pause_status, get_chat_status, \
     add_user_to_whitelist, remove_user_from_whitelist, get_whitelist_by_chat, \
@@ -17,7 +17,7 @@ def admin_required(func):
         if message.from_user is None:
             return
         admins = await message.bot(GetChatAdministrators
-                                   (chat_id=message.chat.id))  #type: ignore
+                                   (chat_id=message.chat.id))  # type: ignore
         user_is_admin = any(admin.user.id == message.from_user.id
                             for admin in admins)
         if not user_is_admin:
@@ -63,7 +63,8 @@ async def command_add_user_handler(message: Message,
         user = await dp['telethon_helper'].get_user_by_username(username)
         done = await add_user_to_whitelist(chat_id, user['id'])
         if not done:
-            await message.answer(f"Не удалось добавить пользователя: Пользователь уже в белом списке.")
+            await message.answer("Не удалось добавить пользователя: "
+                                 "Пользователь уже в белом списке.")
         else:
             await message.answer(f"Пользователь {username} "
                                  "добавлен в белый список.")

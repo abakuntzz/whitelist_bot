@@ -52,7 +52,8 @@ class TelethonHelper:
                 async for member in self._client.iter_participants(chat_id):
                     is_admin = 0
                     if hasattr(member.participant, '__class__'):
-                        if isinstance(member.participant, ChannelParticipantAdmin):
+                        if isinstance(member.participant,
+                                      ChannelParticipantAdmin):
                             is_admin = 1
                         elif isinstance(member.participant,
                                         ChannelParticipantCreator):
