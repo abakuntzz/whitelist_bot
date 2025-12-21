@@ -2,11 +2,18 @@ import pytest
 from unittest.mock import patch, AsyncMock, Mock
 import sys
 import os
-
+import asyncio
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import database.commands as db_commands
 
-
+@pytest.mark.asyncio
+async def test_connection():
+    try:
+        async with engine.connect() as conn:
+            assert conn is not None
+    except Exception as e:
+        pytest.fail(f"Не удалось подключиться к БД: {e}")
+        
 @pytest.mark.asyncio
 async def test_add_user_to_whitelist():
     with patch.object(db_commands, 'AsyncSessionLocal') as mock_session_local:
