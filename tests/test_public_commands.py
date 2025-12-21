@@ -8,34 +8,6 @@ import commands.public_commands as public_commands
 
 
 @pytest.mark.asyncio
-async def test_command_pause_handler():
-    message = AsyncMock()
-    message.chat.id = -1001234567890
-    message.from_user.id = 123456789
-    message.answer = AsyncMock()
-    
-    mock_admin = Mock()
-    mock_admin.user = Mock()
-    mock_admin.user.id = 123456789
-    message.bot = AsyncMock(return_value=[mock_admin])
-    
-    command = AsyncMock()
-    command.args = None
-    
-    mock_update_pause_status = AsyncMock(return_value=True)
-    
-    with patch.object(public_commands, 'update_pause_status', mock_update_pause_status):
-        await public_commands.command_pause_handler(message, command)
-    
-    mock_update_pause_status.assert_called_once_with(-1001234567890, True)
-    
-    message.answer.assert_called_once()
-    response_text = message.answer.call_args[0][0]
-    assert "паузе" in response_text
-    assert "/unpause" in response_text
-
-
-@pytest.mark.asyncio
 async def test_command_unpause_handler():
     message = AsyncMock()
     message.chat.id = -1001234567890
@@ -68,6 +40,33 @@ async def test_command_unpause_handler():
     message.answer.assert_called_once()
     response_text = message.answer.call_args[0][0]
     assert "активирован" in response_text
+
+@pytest.mark.asyncio
+async def test_command_pause_handler():
+    message = AsyncMock()
+    message.chat.id = -1001234567890
+    message.from_user.id = 123456789
+    message.answer = AsyncMock()
+    
+    mock_admin = Mock()
+    mock_admin.user = Mock()
+    mock_admin.user.id = 123456789
+    message.bot = AsyncMock(return_value=[mock_admin])
+    
+    command = AsyncMock()
+    command.args = None
+    
+    mock_update_pause_status = AsyncMock(return_value=True)
+    
+    with patch.object(public_commands, 'update_pause_status', mock_update_pause_status):
+        await public_commands.command_pause_handler(message, command)
+    
+    mock_update_pause_status.assert_called_once_with(-1001234567890, True)
+    
+    message.answer.assert_called_once()
+    response_text = message.answer.call_args[0][0]
+    assert "паузе" in response_text
+    assert "/unpause" in response_text
 
 
 @pytest.mark.asyncio
