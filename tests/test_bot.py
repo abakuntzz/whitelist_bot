@@ -59,4 +59,4 @@ async def test_activate():
             if "test" in str(e).lower() or "mock" in str(e).lower():
                 assert True
             else:
-                raise
+                pytest.fail(f"{e}")
