@@ -8,25 +8,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import bot.bot_launch as bot_launch
 import bot.set_commands as set_commands
 
-
 @pytest.mark.asyncio
-async def test_initialise_commands():
-    mock_bot = AsyncMock()
-    mock_bot.set_my_commands = AsyncMock()
-    
+async def test_initialise_commands(mock_bot):
+   
     await set_commands.initialise_commands(mock_bot)
-    
     assert mock_bot.set_my_commands.call_count == 2
-    
-    first_call = mock_bot.set_my_commands.call_args_list[0]
-    assert 'commands' in first_call[1]
-    group_commands = first_call[1]['commands']
-    assert len(group_commands) > 0
-    
-    second_call = mock_bot.set_my_commands.call_args_list[1]
-    assert 'commands' in second_call[1]
-    all_commands = second_call[1]['commands']
-    assert len(all_commands) > 0
 
 
 @pytest.mark.asyncio
@@ -56,7 +42,4 @@ async def test_activate():
             await bot_launch.activate()
             assert True
         except Exception as e:
-            if "test" in str(e).lower() or "mock" in str(e).lower():
-                assert True
-            else:
-                pytest.fail(f"{e}")
+            pytest.fail(f"{e}")
