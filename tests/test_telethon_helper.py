@@ -20,7 +20,7 @@ async def test_singleton_pattern():
 async def test_initialize(mock_telegram_client):
     helper = telethon_helper.TelethonHelper()
     mock_me = Mock(id=123456789)
-    mock_telegram_client.get_me = AsyncMock(return_value=)
+    mock_telegram_client.get_me = AsyncMock(return_value=mock_me)
     
     with patch.object(telethon_helper, 'TelegramClient', return_value=mock_telegram_client):
         await helper.initialize(12345, "test_api_hash", "test_bot_token")
