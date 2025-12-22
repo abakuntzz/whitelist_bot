@@ -31,9 +31,9 @@
 ## Примерная иерархия пакетов
 ```mermaid
   graph TD;
-      Main-->Bot;
-      Main-->Database;
-      Main-->Secrets;
+      entrypoint-->Bot;
+      Bot-->Database;
+      Bot-->Secrets;
       Bot-->Commands;
       Commands-->Database;
       Database-->Secrets;
@@ -160,4 +160,11 @@
 - ```bot_secret.txt``` - ключ от бота (получить через BotFather)
 - ```api_hash.txt``` - хэш от Telegram API (с https://my.telegram.org/apps)
 - ```api_id.txt``` - идентификатор от Telegram API (с https://my.telegram.org/apps)
-- ```db_secret.txt``` - ключ от базы данных (чтобы сохранялось локально, ```sqlite+aiosqlite:///whitelist.db```)
+- ```db_secret.txt``` - ключ от базы данных (чтобы сохранялось локально, ```sqlite+aiosqlite:///whitelist.db```)  
+
+Далее можно создать и запустить Docker-контейнер, написав  в терминале:
+```
+docker-compose build  
+docker-compose up
+```
+ Или в обход докера можно запустить ```__init__.py``` в корне репозитория.
