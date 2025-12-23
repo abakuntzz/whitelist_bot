@@ -1,57 +1,55 @@
 import pytest
-import asyncio
 from unittest.mock import AsyncMock, Mock
-from telethon.tl.types import ChannelParticipantAdmin, \
-    ChannelParticipantCreator
-
-@pytest.fixture
-def mock_message():
-    """Мок сообщения в групповом чате"""
-    message = AsyncMock()
-    message.chat.id = -1001234567890 
-    message.from_user.id = 123456789   
-    message.answer = AsyncMock()
-    return message
 
 
 @pytest.fixture
-def mock_message_admin():
-    """Мок сообщения от администратора чата"""
+def mock_message() -> AsyncMock:
+    """Мок сообщения в чате"""
     message = AsyncMock()
     message.chat.id = -1001234567890
     message.from_user.id = 123456789
     message.answer = AsyncMock()
-    
-    mock_bot = AsyncMock()
-    mock_admin = Mock()
-    mock_admin.user = Mock()
-    mock_admin.user.id = 123456789  
-    mock_bot.return_value = [mock_admin]
-    message.bot = mock_bot
-    
     return message
 
 
 @pytest.fixture
-def mock_message_user():
-    """Мок сообщения от обычного пользователя (не админа)"""
+def mock_message_admin() -> AsyncMock:
+    """Мок сообщения от админа"""
     message = AsyncMock()
     message.chat.id = -1001234567890
     message.from_user.id = 123456789
     message.answer = AsyncMock()
-    
+
     mock_bot = AsyncMock()
     mock_admin = Mock()
     mock_admin.user = Mock()
-    mock_admin.user.id = 999999999  
+    mock_admin.user.id = 123456789
     mock_bot.return_value = [mock_admin]
     message.bot = mock_bot
-    
+
     return message
 
 
 @pytest.fixture
-def mock_command():
+def mock_message_user() -> AsyncMock:
+    """Мок сообщения от не админа"""
+    message = AsyncMock()
+    message.chat.id = -1001234567890
+    message.from_user.id = 123456789
+    message.answer = AsyncMock()
+
+    mock_bot = AsyncMock()
+    mock_admin = Mock()
+    mock_admin.user = Mock()
+    mock_admin.user.id = 999999999
+    mock_bot.return_value = [mock_admin]
+    message.bot = mock_bot
+
+    return message
+
+
+@pytest.fixture
+def mock_command() -> AsyncMock:
     """Мок команды телеграм"""
     command = AsyncMock()
     command.args = None
@@ -59,31 +57,33 @@ def mock_command():
 
 
 @pytest.fixture
-def mock_db_session():
+def mock_db_session() -> AsyncMock:
     """Мок сессии базы данных"""
     session = AsyncMock()
 
     mock_result = Mock()
-    mock_result.scalar_one_or_none = AsyncMock(return_value=None)
+    mock_result.scalar_one_or_none = Mock(return_value=None)
     mock_result.fetchall = Mock(return_value=[])
     mock_result.rowcount = 0
-    
+
     session.execute = AsyncMock(return_value=mock_result)
     session.add = AsyncMock()
     session.commit = AsyncMock()
-    
+
     return session
 
+
 @pytest.fixture
-def mock_bot():
-    """Фикстура для мока бота"""
+def mock_bot() -> AsyncMock:
+    """Мок бота"""
     bot = AsyncMock()
     bot.set_my_commands = AsyncMock()
     return bot
 
+
 @pytest.fixture
-def mock_telethon_helper():
-    """Фикстура для мока TelethonHelper"""
+def mock_telethon_helper() -> AsyncMock:
+    """Мок TelethonHelper"""
     helper = AsyncMock()
     helper.initialize = AsyncMock()
     helper.shutdown = AsyncMock()
@@ -97,8 +97,8 @@ def mock_telethon_helper():
 
 
 @pytest.fixture
-def mock_telegram_client():
-    """Фикстура для мока TelegramClient"""
+def mock_telegram_client() -> AsyncMock:
+    """Мок TelegramClient"""
     client = AsyncMock()
     client.start = AsyncMock()
     client.get_me = AsyncMock()
@@ -108,5 +108,3 @@ def mock_telegram_client():
     client.kick_participant = AsyncMock()
     client.get_permissions = AsyncMock()
     return client
-
-
