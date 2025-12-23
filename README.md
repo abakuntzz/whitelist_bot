@@ -1,6 +1,6 @@
 # Даша-бот
 [Ссылка на GitHub](https://github.com/abakuntzz/whitelist_bot/)  
-[Ссылка на Dockerhub](https://hub.docker.com/repository/docker/abakuntzz/whitelist_bot/general)
+[Ссылка на Dockerhub](https://hub.docker.com/repository/docker/abakuntzz/whitelist_bot/general)  
 Данный Telegram-бот предназначен для поддержания системы белого списка в чате. Если есть какой-то пользователь, который не состоит в списке, то бот его кикнет из чата.  
 
 **Что увидит пользователь:**
