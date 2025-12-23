@@ -6,8 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 from commands.telethon_helper import TelethonHelper
 from commands.dispatcher import dp
-from commands import public_commands, basic_commands, \
-    private_commands  # noqa: F401
+from commands import public_commands, basic_commands  # noqa: F401
 from .set_commands import initialise_commands
 from database.connection import create_tables
 import traceback
