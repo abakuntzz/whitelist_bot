@@ -63,7 +63,7 @@ async def get_chat_status(chat_id: int) -> bool:
                 session.add(chat)
                 await session.commit()
                 return True
-            return chat.paused
+            return bool(chat.paused)
     except Exception as e:
         logging.info(f"Не удалось получить статус чата {chat_id} - {e}")
         return True
@@ -80,7 +80,7 @@ async def update_pause_status(chat_id: int, paused: bool) -> bool:
                 chat = Chat(id=chat_id, paused=paused)
                 session.add(chat)
             else:
-                chat.paused = paused
+                chat.paused = paused  # type: ignore
             await session.commit()
             return True
     except Exception as e:
