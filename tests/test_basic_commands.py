@@ -3,7 +3,8 @@ import sys
 import os
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-import commands.basic_commands as basic_commands
+
+import commands.basic_commands as basic_commands   # noqa: E402
 
 START_EXPECTED = (
     "Привет! Я - Бот-Кондуктор, здесь, "
@@ -11,7 +12,7 @@ START_EXPECTED = (
     "Чтобы узнать, как мной пользоваться, напиши /help."
 )
 
-HELP_EXPEXTED = (
+HELP_EXPECTED = (
     "<b>Инструкция:</b>\n"
     "<b>Общие функции:</b>\n"
     "/start - приветствие\n"
@@ -33,21 +34,19 @@ HELP_EXPEXTED = (
 
 @pytest.mark.asyncio
 async def test_command_start_handler(mock_message) -> None:
-
     await basic_commands.command_start_handler(mock_message)
 
     mock_message.answer.assert_called_once()
     response_text = mock_message.answer.call_args[0][0]
-    
+
     assert response_text == START_EXPECTED
 
 
 @pytest.mark.asyncio
 async def test_command_help_handler(mock_message) -> None:
-
     await basic_commands.command_help_handler(mock_message)
-    
+
     mock_message.answer.assert_called_once()
     response_text = mock_message.answer.call_args[0][0]
-    
-    assert response_text == HELP_EXPEXTED 
+
+    assert response_text == HELP_EXPECTED
