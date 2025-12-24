@@ -89,6 +89,7 @@ async def test_update_pause_status(mock_db_session) -> None:
 
         assert result is True
         mock_db_session.execute.assert_awaited_once()
+        assert mock_chat.paused is True
         mock_db_session.commit.assert_awaited_once()
 
 
