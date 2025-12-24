@@ -30,10 +30,10 @@ async def test_initialize(mock_telegram_client) -> None:
         await helper.initialize(12345, "test_api_hash", "test_bot_token")
         assert helper._initialized is True
         assert helper._me.id == 123456789
-        mock_telegram_client.start.assert_called_once_with(
+        mock_telegram_client.start.assert_awaited_once_with(
             bot_token="test_bot_token"
         )
-        mock_telegram_client.get_me.assert_called_once()
+        mock_telegram_client.get_me.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -43,13 +43,13 @@ async def test_shutdown(mock_telegram_client) -> None:
     helper._client = mock_telegram_client
     helper._initialized = True
     await helper.shutdown()
-    mock_telegram_client.disconnect.assert_called_once()
+    mock_telegram_client.disconnect.assert_awaited_once()
     assert helper._client is None
     assert helper._initialized is False
 
 
 @pytest.mark.asyncio
-async def test_kick_user_other(mock_telegram_client) -> None:
+async def test_kick_user(mock_telegram_client) -> None:
     helper = telethon_helper.TelethonHelper()
     helper._me = Mock(id=123456789)
     helper._client = mock_telegram_client
@@ -58,20 +58,20 @@ async def test_kick_user_other(mock_telegram_client) -> None:
     mock_telegram_client.kick_participant = AsyncMock()
     result = await helper.kick_user(-1001234567890, 987654321)
     assert result is True
-    mock_telegram_client.get_entity.assert_called_once_with(987654321)
-    mock_telegram_client.kick_participant.assert_called_once_with(
+    mock_telegram_client.get_entity.assert_awaited_once_with(987654321)
+    mock_telegram_client.kick_participant.assert_awaited_once_with(
         -1001234567890, mock_user)
 
 
 @pytest.mark.asyncio
-async def test_kick_user_self(mock_telegram_client) -> None:
+async def test_kick_myself(mock_telegram_client) -> None:
     helper = telethon_helper.TelethonHelper()
     helper._me = Mock(id=123456789)
     helper._client = mock_telegram_client
     result = await helper.kick_user(-1001234567890, 123456789)
     assert result is False
-    mock_telegram_client.get_entity.assert_not_called()
-    mock_telegram_client.kick_participant.assert_not_called()
+    mock_telegram_client.get_entity.assert_not_awaited()
+    mock_telegram_client.kick_participant.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -82,8 +82,8 @@ async def test_get_chat_members_empty() -> None:
         if False:
             yield
 
-    helper._client = AsyncMock()
-    helper._client.iter_participants = empty_iter_participants
+    mock_client = AsyncMock()
+    mock_client.iter_participants.return_value = AsyncMock()
 
     result = await helper.get_chat_members(-1001234567890)
     assert result == []
@@ -93,16 +93,16 @@ async def test_get_chat_members_empty() -> None:
 async def test_get_user_by_username() -> None:
     helper = telethon_helper.TelethonHelper()
     helper._client = AsyncMock()
-    mock_user = Mock(id=123456789, username="testuser", first_name="Тест",
-                     last_name="Пользователь", bot=False)
+    mock_user = Mock(id=123456789, username="user", first_name="Юзер",
+                     last_name="Юзер0", bot=False)
     helper._client.get_entity = AsyncMock(return_value=mock_user)
-    result = await helper.get_user_by_username("@testuser")
-    helper._client.get_entity.assert_called_once_with("testuser")
+    result = await helper.get_user_by_username("@user")
+    helper._client.get_entity.assert_awaited_once_with("user")
     assert result is not None
     assert result['id'] == 123456789
-    assert result['username'] == "testuser"
-    assert result['first_name'] == "Тест"
-    assert result['last_name'] == "Пользователь"
+    assert result['username'] == "user"
+    assert result['first_name'] == "Юзер"
+    assert result['last_name'] == "Юзер0"
     assert result['is_bot'] is False
 
 
@@ -110,15 +110,15 @@ async def test_get_user_by_username() -> None:
 async def test_get_user_by_id() -> None:
     helper = telethon_helper.TelethonHelper()
     helper._client = AsyncMock()
-    mock_user = Mock(id=123456789, username="testuser", first_name="Тест",
-                     last_name="Юзер", bot=True)
+    mock_user = Mock(id=123456789, username="user", first_name="Юзер",
+                     last_name="Юзер0", bot=True)
     helper._client.get_entity = AsyncMock(return_value=mock_user)
     result = await helper.get_user_by_id(123456789)
     assert result is not None
     assert result['id'] == 123456789
-    assert result['username'] == "testuser"
-    assert result['first_name'] == "Тест"
-    assert result['last_name'] == "Юзер"
+    assert result['username'] == "user"
+    assert result['first_name'] == "Юзер"
+    assert result['last_name'] == "Юзер0"
     assert result['is_bot'] is True
 
 
@@ -141,6 +141,7 @@ async def test_chat_check():
     ):
         result = await helper.chat_check(-1001234567890)
         assert result is True
-        assert helper.kick_user.call_count == 1
+        assert helper.kick_user.await_count == 1
         helper.kick_user.assert_called_once_with(
             -1001234567890, 222)
+
