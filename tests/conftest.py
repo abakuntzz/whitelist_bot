@@ -108,3 +108,15 @@ def mock_telegram_client() -> AsyncMock:
     client.kick_participant = AsyncMock()
     client.get_permissions = AsyncMock()
     return client
+
+
+@pytest.fixture
+def mock_event() -> AsyncMock:
+    """Базовая фикстура для всех событий"""
+    event = AsyncMock()
+    event.chat.id = -1001234567890
+    event.new_chat_member = AsyncMock()
+    event.new_chat_member.user = AsyncMock()
+    event.new_chat_member.user.id = 123456789
+    event.answer = AsyncMock()
+    return event
