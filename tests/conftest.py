@@ -112,7 +112,7 @@ def mock_telegram_client() -> AsyncMock:
 
 @pytest.fixture
 def mock_event() -> AsyncMock:
-    """Базовая фикстура для всех событий"""
+    """Фикстура события (добавление в чат)"""
     event = AsyncMock()
     event.chat.id = -1001234567890
     event.new_chat_member = AsyncMock()
