@@ -144,4 +144,3 @@ async def test_chat_check():
         assert helper.kick_user.await_count == 1
         helper.kick_user.assert_called_once_with(
             -1001234567890, 222)
-
